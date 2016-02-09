@@ -2,28 +2,41 @@ damageRolls=["1d6+1", "1d6+3", "1d6+5", "1d8+6", "1d8+8", "2d6+8", "2d6+10", "2d
 
 on("chat:message", function(msg) {
     if(msg.type == "api" && !isNaN(msg.content.substr(1,1))) {
-	parsing = msg.content.split(" ")[0];
-	oparse = parsing
-	rest = msg.content.replace(parsing + " ", "");
-	effectiveMulti = 1;
-	while (parsing[parsing.length-1] == "+") {
-	    effectiveMulti *= 2;
-	    parsing = parsing.replace("+", "");
-	}
-	while (parsing[parsing.length-1] =="-") {
-	    effectiveMulti *= 0.5;
-	    parsing = parsing.replace("-", "");
-	}
-	damage = Number(parsing.substr(1));
-	if(isNaN(damage)) return;
-	if(damage > damageRolls.length) return;
-	log(oparse + " -> " +"/roll " + damageRolls[damage-1]);
-	sendChat(msg.who, "/roll (" + damageRolls[damage-1] + ") *" + effectiveMulti + " " + rest);
-	if(effectiveMulti > 1) {
-	    sendChat("", "It's Super Effective!");
-	}
-	else if (effectiveMulti < 1) {
-	    sendChat("", "It's Not Very Effective.");
-	}
-    }
+        parsing = msg.content.split(" ")[0];
+        oparse = parsing
+        rest = msg.content.replace(parsing + " ", "");
+        effectiveMulti = 1;
+        ind=1;
+        while (parsing[parsing.length-ind] == "+" || parsing[parsing.length-ind] == "-") {
+            effectiveMulti *= (parsing[parsing.length-ind] == "+") ? 2 : 0.5
+            ind++
+        }
+        ind--
+        parsing = parsing.substr(0,parsing.length-ind);
+        damage = Number(parsing.substr(1));
+        addToTotal = NaN;
+        if(isNaN(damage)) {
+            plus = parsing.substr(1).indexOf("+");
+            if(plus > -1) {
+                damage = Number(parsing.substr(1, plus));
+                log(damage)
+                if(isNaN(damage)) return;
+                addToTotal = Number(parsing.substr(plus+1));
+            }
+            else return;
+        }
+        if(damage > damageRolls.length) return;
+        log(oparse + " -> " +"/roll " + damageRolls[damage-1]);
+        sendChat(msg.who, "/roll (" + 
+                          damageRolls[damage-1] + 
+                          ") *" + effectiveMulti + 
+                          (isNaN(addToTotal) ? " " : "+" + addToTotal + " ") + 
+                          rest);
+        if(effectiveMulti > 1) {
+            sendChat("", "It's Super Effective!");
+        }
+        else if (effectiveMulti < 1) {
+            sendChat("", "It's Not Very Effective.");
+        }
+    } 
 });
