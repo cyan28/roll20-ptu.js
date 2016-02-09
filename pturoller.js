@@ -16,12 +16,13 @@ on("chat:message", function(msg) {
         damage = Number(parsing.substr(1));
         addToTotal = NaN;
         if(isNaN(damage)) {
-            plus = parsing.substr(1).indexOf("+");
+            plusop = parsing.match(/[\\+\\-]/);
+            plus = parsing.substr(1).indexOf(plusop);
             if(plus > -1) {
                 damage = Number(parsing.substr(1, plus));
                 log(damage)
                 if(isNaN(damage)) return;
-                addToTotal = Number(parsing.substr(plus+1));
+                addToTotal = Number(parsing.substr(plus+2));
             }
             else return;
         }
@@ -30,7 +31,7 @@ on("chat:message", function(msg) {
         sendChat(msg.who, "/roll (" + 
                           damageRolls[damage-1] + 
                           ") *" + effectiveMulti + 
-                          (isNaN(addToTotal) ? " " : "+" + addToTotal + " ") + 
+                          (isNaN(addToTotal) ? " " : plusop + addToTotal + " ") + 
                           rest);
         if(effectiveMulti > 1) {
             sendChat("", "It's Super Effective!");
